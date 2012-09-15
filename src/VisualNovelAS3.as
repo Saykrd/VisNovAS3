@@ -6,7 +6,7 @@ package
 	{
 		public function VisualNovelAS3()
 		{
-			var change:int = 42;
+			var change:int = 43;
 		}
 	}
 }
