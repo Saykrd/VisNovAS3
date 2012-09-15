@@ -1,12 +1,50 @@
 package
 {
 	import flash.display.Sprite;
+	import flash.events.Event;
+	
+	import load.DataLoad;
+	import load.LoadObject;
 	
 	public class VisualNovelAS3 extends Sprite
 	{
+		
+		private static const ASSETS_URL:String = "resources/xml/assets.xml";
+		private static const INITIAL_ASSETS_ID:String = "initialAssets";
+		
 		public function VisualNovelAS3()
 		{
-			var change:int = 43;
+			if(!stage){
+				this.addEventListener(Event.ADDED_TO_STAGE, onAdded);
+			} else {
+				init();
+			}
+			
+			function onAdded(e:Event):void{
+				init();
+				this.removeEventListener(Event.ADDED_TO_STAGE, onAdded);
+			}
+		}
+		
+		public function init():void{
+			DataLoad.startup(ASSETS_URL, startLoad);
+		}
+		
+		public function startLoad():void{
+			trace("I have all the asset data, I can begin loading now");
+			
+			
+			var loadObj:LoadObject = new LoadObject(null, onComplete);
+			DataLoad.loadXML(INITIAL_ASSETS_ID, loadObj);
+			
+			function onComplete(obj:LoadObject):void{
+				var initialLoadXML:XML = DataLoad.getXML(INITIAL_ASSETS_ID);
+				DataLoad.loadAssetsForXML(initialLoadXML, new LoadObject(null, startGame));
+			}
+		}
+		
+		public function startGame(load:LoadObject):void{
+			trace("game is ready to start!");
 		}
 	}
 }

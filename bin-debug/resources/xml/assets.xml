@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assets>
+	<assetList extension="xml" type="text">
+		<asset id="asset1" url="somewhere1"/>
+	</assetList>
+	<assetList extension="png" type="display">
+		<asset id="asset2" url="somewhere2"/>
+	</assetList>
+	<assetList extension="swf" type="display">
+		<asset id="asset3" url="somewhere3"/>
+	</assetList>
+	<assetList extension="mp3" type="sound">
+		<asset id="asset4" url="somewhere4"/>
+	</assetList>
+
+</assets>
