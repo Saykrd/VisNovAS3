@@ -25,11 +25,14 @@ package load
 			
 			var urlLoader:URLLoader = new URLLoader;
 			var urlRequest:URLRequest = new URLRequest(assetListURL);
-			
+			trace("[DataLoad] is starting up...");
+			trace("[DataLoad] Loading up assets XML from: " + assetListURL);
 			urlLoader.addEventListener(Event.COMPLETE, loaded);
 			urlLoader.load(urlRequest);
 			
 			function loaded(e:Event):void{
+				trace("[DataLoad] Assets XML succesfully loaded from: " + assetListURL);
+				
 				var assetsXML:XML = XML(e.currentTarget.data);
 				_assetList = new Dictionary;
 				_assetBank = new Dictionary;
@@ -47,6 +50,8 @@ package load
 				}
 				
 				urlLoader.removeEventListener(Event.COMPLETE, loaded);
+				urlLoader = null;
+				trace("[DataLoad] Startup completed succesfully.");
 				if(callback)callback();
 			}
 		}
@@ -74,69 +79,52 @@ package load
 			var asset:XML;
 			
 			for each(asset in xmlList){
-				if(!_assetList[asset.@assetID]) throw new Error("This asset is not defined in the assets XML: " + String(asset.@assetID));
-				assets.push(_assetList[asset.@assetID]);	
+				if(!_assetList[String(asset)]) throw new Error("[DataLoadError] This asset is not defined in the assets XML: " + String(asset));
+				assets.push(_assetList[String(asset)]);	
 			}
 			
 			return assets;
 		}
 		
-		public static function loadXML(assetID:String, loadObj:LoadObject):void{
+		public static function loadAsset(assetID:String, loadObj:LoadObject):void{
 			
-			if(!_assetList[assetID]) throw new Error("This asset is not defined in the assets XML: " + assetID);
-			if(_assetList[assetID].extension != "xml") throw new Error("This asset is not an XML: " + assetID);
+			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined in the assets XML: " + assetID);
 			var asset:AssetInfo = _assetList[assetID];
-			
+			loadObj.setNumItems(1);
 			load(asset, loadObj);
 		}
 		
-		public static function loadImage(id:String, path:String):void{
-			
-		}
-		
-		public static function loadSwf(id:String, path:String):void{
-			
-		}
-		
-		public static function loadSound(id:String, name:String):void{
-			
-		}
-		
 		public static function loadAssets(assets:Vector.<AssetInfo>, loadObj:LoadObject):void{
-			var iter:int = -1;
-			
-			setBytes();
-			function setBytes():void{
-				iter++;
-				if(iter < assets.length){
-					loadObj.appendTotalBytes(assets[iter].url, assets[iter].type, setBytes);
-				} else {
-					iter = 0;
-					load(assets[iter],loadObj);
-				}
-			}
+			var iter:int = 0;
+
+			trace("[DataLoad] Starting batch load of " + assets.length + " items...");
+			loadObj.setNumItems(assets.length);
+			load(assets[iter],loadObj,complete);
 			
 			function complete(e:Event):void{
 				iter++;
 				if(iter < assets.length){
 					load(assets[iter], loadObj, complete);
 				} else {
+					trace("[DataLoad] Asset batch succesfully loaded.");
 					loadObj.complete(e);
 				}
 			}
 		}
 		
-		private function load(asset:AssetInfo, loadObj:LoadObject, complete:Function = null):void{
+		private static function load(asset:AssetInfo, loadObj:LoadObject, complete:Function = null):void{
 			var loader:Loader;
 			var urlLoader:URLLoader;
 			var req:URLRequest  = new URLRequest(asset.url);
 			
+			
+			trace("[DataLoad] Loading asset '" + asset.id +  "' from: " + asset.url);
 			if(asset.type == LoadObject.TYPE_DISPLAY){
 				loader = new Loader;
 				
-				loader.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
-				loader.addEventListener(Event.COMPLETE, onComplete);
-				loader.addEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
+				loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
+				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
 				
 				loader.load(req);
 			} else {
@@ -144,43 +132,63 @@ package load
 				urlLoader.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
 				urlLoader.addEventListener(Event.COMPLETE, onComplete);
 				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
+				
+				urlLoader.load(req);
 			}
 			
 			function onComplete(e:Event):void{
+				trace("[DataLoad] Asset '" + asset.id +  "' successfully loaded from: " + asset.url);
+				
+				if(urlLoader){
+					urlLoader.removeEventListener(ProgressEvent.PROGRESS, loadObj.progress);
+					urlLoader.removeEventListener(Event.COMPLETE, onComplete);
+					urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
+				}
+				
+				if(loader){
+					
+					loader.contentLoaderInfo.removeEventListener(ProgressEvent.PROGRESS, loadObj.progress);
+					loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, onComplete);
+					loader.contentLoaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
+				}
+				
+				asset.appDomain = asset.type == LoadObject.TYPE_DISPLAY ?  e.currentTarget.applicationDomain : null;
 				_assetBank[asset.id] = asset.type == LoadObject.TYPE_DISPLAY ? e.currentTarget.content : e.currentTarget.data;
-				complete ? complete() :  loadObj.complete(e);
+				complete ? complete(e) :  loadObj.complete(e);
 			}
 		}
 		
-		public static function loadAssetsForXML(xml:XML, loadObj:LoadObject):void{
+		public static function loadAssetsFromXML(xml:XML, loadObj:LoadObject):void{
 			var assets:Vector.<AssetInfo> = getAssetsFromXML(xml);
 			loadAssets(assets, loadObj);
 		}
 		
 		public static function getImage(batchID:String, name:String):DisplayObject{
-			
-			
 			return new DisplayObject;
 		}
 		
-		public static function getSwf(batchID:String, swfName:String):DisplayObject{
-			var swf:DisplayObject;
-			
+		public static function getSwf(assetID:String):DisplayObject{
+			validateAsset(assetID, "swf");
+			var swf:Object      = _assetBank[assetID];
 			return swf;
 		}
 		
-		public static function getClass(batchID:String, swfName:String, linkageName:String):Class{
-			var cls:Class;
+		public static function getClass(assetID:String, linkageName:String):Class{
+			validateAsset(assetID, "swf");
+			var asset:AssetInfo = _assetList[assetID];
+			var cls:Class       = asset.appDomain.getDefinition(linkageName) as Class;
 			
 			return cls;
 		}
 		
 		public static function getXML(assetID:String):XML{
-			
-			if(!_assetBank[assetID])throw new Error("AssetID: " + assetID + " has not been loaded yet");
-			if(_assetBank[assetID].extension ==  "xml")throw new Error("AssetID: " + assetID + " is not an XML");
-			
+			validateAsset(assetID, "xml");
 			return XML(_assetBank[assetID]);
+		}
+		
+		private static function validateAsset(assetID:String, extension:String):void{
+			if(!_assetBank[assetID])throw new Error("[DataLoadError] AssetID: " + assetID + " has not been loaded yet");
+			if(!_assetList[assetID].extension ==  "xml")throw new Error("[DataLoadError] AssetID: " + assetID + " is not an XML");
 		}
 		
 	}

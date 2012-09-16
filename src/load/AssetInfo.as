@@ -1,5 +1,7 @@
 package load
 {
+	import flash.system.ApplicationDomain;
+
 	public class AssetInfo
 	{
 		public var url:String;
@@ -8,6 +10,7 @@ package load
 		public var extension:String;
 		
 		public var loaded:Boolean = false;
+		public var appDomain:ApplicationDomain;
 		
 		public function loadXML(xml:XML, t:String, ex:String):void{
 			url  = xml.@url;

@@ -1,5 +1,6 @@
 package
 {
+	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	
@@ -10,7 +11,7 @@ package
 	{
 		
 		private static const ASSETS_URL:String = "resources/xml/assets.xml";
-		private static const INITIAL_ASSETS_ID:String = "initialAssets";
+		private static const INITIAL_LOAD_ID:String = "initialLoad";
 		
 		public function VisualNovelAS3()
 		{
@@ -35,16 +36,18 @@ package
 			
 			
 			var loadObj:LoadObject = new LoadObject(null, onComplete);
-			DataLoad.loadXML(INITIAL_ASSETS_ID, loadObj);
+			DataLoad.loadAsset(INITIAL_LOAD_ID, loadObj);
 			
 			function onComplete(obj:LoadObject):void{
-				var initialLoadXML:XML = DataLoad.getXML(INITIAL_ASSETS_ID);
-				DataLoad.loadAssetsForXML(initialLoadXML, new LoadObject(null, startGame));
+				var initialLoadXML:XML = DataLoad.getXML(INITIAL_LOAD_ID);
+				DataLoad.loadAssetsFromXML(initialLoadXML, new LoadObject(null, startGame));
 			}
 		}
 		
 		public function startGame(load:LoadObject):void{
 			trace("game is ready to start!");
+			var square:MovieClip = MovieClip(new (DataLoad.getClass("test", "square")));
+			addChild(square);
 		}
 	}
 }
