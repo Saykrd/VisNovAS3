@@ -1,11 +1,15 @@
 package
 {
+	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.display.StageAlign;
+	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	
 	import load.DataLoad;
 	import load.LoadObject;
+	
 	
 	public class VisualNovelAS3 extends Sprite
 	{
@@ -28,6 +32,10 @@ package
 		}
 		
 		public function init():void{
+			
+			stage.scaleMode = StageScaleMode.NO_SCALE;
+			stage.align		= StageAlign.TOP_LEFT;
+			
 			DataLoad.startup(ASSETS_URL, startLoad);
 		}
 		
@@ -46,8 +54,10 @@ package
 		
 		public function startGame(load:LoadObject):void{
 			trace("game is ready to start!");
-			var square:MovieClip = MovieClip(new (DataLoad.getClass("test", "square")));
-			addChild(square);
+//			var square:MovieClip = MovieClip(new (DataLoad.getClass("test", "square")));
+//			addChild(square);
+			var img:DisplayObject = DataLoad.getImage("image1");
+			addChild(img);
 		}
 	}
 }

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <assets>
-	<assetList extension="xml" type="text">
+	<assetList category="xml" type="text">
 		<asset id="initialLoad" url="resources/xml/initial_load.xml"/>
 	</assetList>
 	
-	<assetList extension="image" type="display">
+	<assetList category="image" type="display">
 		<asset id="image1" url="resources/images/backgrounds/background.jpg"/>
 	</assetList>
 	
-	<assetList extension="swf" type="display">
+	<assetList category="swf" type="display">
 		<asset id="test" url="resources/images/swfs/testswf.swf"/>
 	</assetList>
 	
-	<assetList extension="mp3" type="sound">
+	<assetList category="mp3" type="sound">
 		<asset id="music" url="resources/sound/music/pressurecook.mp3"/>
 	</assetList>
 
