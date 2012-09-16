@@ -14,7 +14,7 @@ package
 	public class VisualNovelAS3 extends Sprite
 	{
 		
-		private static const ASSETS_URL:String = "resources/xml/assets.xml";
+		private static const ASSETS_URL:String      = "resources/xml/assets.xml";
 		private static const INITIAL_LOAD_ID:String = "initialLoad";
 		
 		public function VisualNovelAS3()
