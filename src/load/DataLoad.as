@@ -97,7 +97,7 @@ package load
 		
 		
 		public static function loadAsset(assetID:String, onComplete:Function  = null, onProgress:Function = null, onError:Function = null):LoadObject{
-			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined in the assets XML: " + assetID);
+			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined: " + assetID);
 			var loadObj:LoadObject = new LoadObject(onComplete, onProgress, onError);
 			var asset:AssetInfo = _assetList[assetID];
 			loadObj.setNumItems(1);
@@ -212,7 +212,6 @@ package load
 			return bmp;
 		}
 		
-		
 		public static function getImageData(assetID:String):BitmapData{
 			validateAsset(assetID, "image");
 			
@@ -243,6 +242,7 @@ package load
 		}
 		
 		private static function validateAsset(assetID:String, category:String):void{
+			if(!_assetList[assetID])throw new Error("[DataLoadError] This asset is not defined: " + assetID);
 			if(!_assetBank[assetID])throw new Error("[DataLoadError] AssetID: " + assetID + " has not been loaded yet");
 			if(!_assetList[assetID].category == category)throw new Error("[DataLoadError] AssetID: " + assetID + " is not an XML");
 		}
