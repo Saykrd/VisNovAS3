@@ -12,7 +12,7 @@ package load
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
-
+	
 	public class DataLoad
 	{
 		
@@ -21,43 +21,7 @@ package load
 		
 		
 		public static function startup(assetListURL:String, callback:Function):void{
-			var asset:AssetInfo;
-			var list:XML;
-			var xml:XML;
-			var extension:String;
-			var type:String;
-			
-			var urlLoader:URLLoader = new URLLoader;
-			var urlRequest:URLRequest = new URLRequest(assetListURL);
-			trace("[DataLoad] is starting up...");
-			trace("[DataLoad] Loading up assets XML from: " + assetListURL);
-			urlLoader.addEventListener(Event.COMPLETE, loaded);
-			urlLoader.load(urlRequest);
-			
-			function loaded(e:Event):void{
-				trace("[DataLoad] Assets XML succesfully loaded from: " + assetListURL);
-				
-				var assetsXML:XML = XML(e.currentTarget.data);
-				_assetList = new Dictionary;
-				_assetBank = new Dictionary;
-				
-				for each(list in assetsXML.assetList){
-					extension = String(list.@extension);
-					type	  = String(list.@type);
-					
-					for each(xml in list.asset){
-						asset = new AssetInfo;
-						asset.loadXML(xml, type, extension);
-						
-						_assetList[asset.id] = asset;
-					}
-				}
-				
-				urlLoader.removeEventListener(Event.COMPLETE, loaded);
-				urlLoader = null;
-				trace("[DataLoad] Startup completed succesfully.");
-				if(callback)callback();
-			}
+			loadAssetsXML(assetListURL, callback);
 		}
 		
 		private static function getAssetInfoByID(id:String):AssetInfo{
@@ -90,6 +54,48 @@ package load
 			return assets;
 		}
 		
+		
+		public static function loadAssetsXML(url:String, callback:Function = null):void{
+			var asset:AssetInfo;
+			var list:XML;
+			var xml:XML;
+			var extension:String;
+			var type:String;
+			
+			var urlLoader:URLLoader = new URLLoader;
+			var urlRequest:URLRequest = new URLRequest(url);
+			trace("[DataLoad] is starting up...");
+			trace("[DataLoad] Loading up assets XML from: " + url);
+			urlLoader.addEventListener(Event.COMPLETE, loaded);
+			urlLoader.load(urlRequest);
+			
+			function loaded(e:Event):void{
+				trace("[DataLoad] Assets XML succesfully loaded from: " + url);
+				
+				var assetsXML:XML = XML(e.currentTarget.data);
+				_assetList = new Dictionary;
+				_assetBank = new Dictionary;
+				
+				for each(list in assetsXML.assetList){
+					extension = String(list.@extension);
+					type	  = String(list.@type);
+					
+					for each(xml in list.asset){
+						asset = new AssetInfo;
+						asset.loadXML(xml, type, extension);
+						
+						_assetList[asset.id] = asset;
+					}
+				}
+				
+				urlLoader.removeEventListener(Event.COMPLETE, loaded);
+				urlLoader = null;
+				trace("[DataLoad] Startup completed succesfully.");
+				if(callback)callback();
+			}
+		}
+		
+		
 		public static function loadAsset(assetID:String, loadObj:LoadObject):void{
 			
 			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined in the assets XML: " + assetID);
@@ -100,7 +106,7 @@ package load
 		
 		public static function loadAssets(assets:Vector.<AssetInfo>, loadObj:LoadObject):void{
 			var iter:int = 0;
-
+			
 			trace("[DataLoad] Starting batch load of " + assets.length + " items...");
 			loadObj.setNumItems(assets.length);
 			load(assets[iter],loadObj,complete);
@@ -183,6 +189,16 @@ package load
 			disp.addChild(bmp);
 			
 			return disp;
+		}
+		
+		public static function getImageData(assetID:String):BitmapData{
+			validateAsset(assetID, "image");
+			
+			var img:DisplayObject 	= _assetBank[assetID];
+			var data:BitmapData   	= new BitmapData(img.width, img.height, true);
+			
+			data.draw(img);
+			return data;
 		}
 		
 		public static function getSwf(assetID:String):*{
