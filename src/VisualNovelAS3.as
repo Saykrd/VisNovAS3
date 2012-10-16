@@ -43,12 +43,12 @@ package
 			trace("I have all the asset data, I can begin loading now");
 			
 			
-			var loadObj:LoadObject = new LoadObject(null, onComplete);
+			var loadObj:LoadObject = new LoadObject(onComplete);
 			DataLoad.loadAsset(INITIAL_LOAD_ID, loadObj);
 			
 			function onComplete(obj:LoadObject):void{
 				var initialLoadXML:XML = DataLoad.getXML(INITIAL_LOAD_ID);
-				DataLoad.loadAssetsFromXML(initialLoadXML, new LoadObject(null, startGame));
+				DataLoad.loadAssetsFromXML(initialLoadXML, new LoadObject(startGame));
 			}
 		}
 		

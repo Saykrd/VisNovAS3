@@ -35,7 +35,7 @@ package load
 			return _assetProgress;
 		}
 		
-		public function LoadObject(onProgress:Function = null, onComplete:Function = null, onError:Function = null)
+		public function LoadObject(onComplete:Function = null, onProgress:Function = null, onError:Function = null)
 		{
 			_onProgress = onProgress;
 			_onComplete = onComplete;
