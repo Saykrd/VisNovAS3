@@ -199,6 +199,20 @@ package load
 			return disp;
 		}
 		
+		public static function getBitmap(assetID:String):Bitmap{
+			validateAsset(assetID, "image");
+			
+			var img:DisplayObject 	= _assetBank[assetID];
+			var data:BitmapData   	= new BitmapData(img.width, img.height, true);
+			
+			data.draw(img);
+			
+			var bmp:Bitmap		  	= new Bitmap(data);
+			
+			return bmp;
+		}
+		
+		
 		public static function getImageData(assetID:String):BitmapData{
 			validateAsset(assetID, "image");
 			
