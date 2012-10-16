@@ -96,38 +96,41 @@ package load
 		}
 		
 		
-		public static function loadAsset(assetID:String, loadObj:LoadObject):void{
-			
+		public static function loadAsset(assetID:String, onComplete:Function  = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			if(!_assetList[assetID]) throw new Error("[DataLoadError] This asset is not defined in the assets XML: " + assetID);
+			var loadObj:LoadObject = new LoadObject(onComplete, onProgress, onError);
 			var asset:AssetInfo = _assetList[assetID];
 			loadObj.setNumItems(1);
 			load(asset, loadObj);
+			return loadObj;
 		}
 		
-		public static function loadAssets(assets:Vector.<AssetInfo>, loadObj:LoadObject):void{
+		public static function loadAssets(assets:Vector.<AssetInfo>, onComplete:Function = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			var iter:int = 0;
-			
+			var loadObj = new LoadObject(checkNextAsset, onProgress, onError);
 			trace("[DataLoad] Starting batch load of " + assets.length + " items...");
 			loadObj.setNumItems(assets.length);
-			load(assets[iter],loadObj,complete);
+			load(assets[iter],loadObj);
 			
-			function complete(e:Event):void{
+			return loadObj;
+			
+			function checkNextAsset(obj:LoadObject):void{
 				iter++;
 				if(iter < assets.length){
-					load(assets[iter], loadObj, complete);
+					load(assets[iter], obj);
 				} else {
 					trace("[DataLoad] Asset batch succesfully loaded.");
-					loadObj.complete(e);
+					onComplete(obj);
 				}
 			}
 		}
 		
-		public static function loadAssetsFromXML(xml:XML, loadObj:LoadObject):void{
+		public static function loadAssetsFromXML(xml:XML, onComplete:Function = null, onProgress:Function = null, onError:Function = null):LoadObject{
 			var assets:Vector.<AssetInfo> = getAssetsFromXML(xml);
-			loadAssets(assets, loadObj);
+			return loadAssets(assets, onComplete, onProgress, onError);
 		}
 		
-		private static function load(asset:AssetInfo, loadObj:LoadObject, complete:Function = null):void{
+		private static function load(asset:AssetInfo, loadObj:LoadObject):void{
 			var loader:Loader;
 			var urlLoader:URLLoader;
 			var req:URLRequest  = new URLRequest(asset.url);
@@ -139,16 +142,21 @@ package load
 				
 				loader.contentLoaderInfo.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, onComplete);
-				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
+				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onError);
 				
 				loader.load(req);
 			} else {
 				urlLoader = new URLLoader;
 				urlLoader.addEventListener(ProgressEvent.PROGRESS, loadObj.progress);
 				urlLoader.addEventListener(Event.COMPLETE, onComplete);
-				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, loadObj.error);
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, onError);
 				
 				urlLoader.load(req);
+			}
+			
+			function onError(e:IOErrorEvent):void{
+				trace("[DataLoad] !! There was an error loading this file: " + asset.id + " -> " + asset.url);
+				loadObj.error(e);
 			}
 			
 			function onComplete(e:Event):void{
@@ -170,7 +178,7 @@ package load
 				loadObj.assetLoaded();
 				asset.appDomain = asset.type == LoadObject.TYPE_DISPLAY ?  e.currentTarget.applicationDomain : null;
 				_assetBank[asset.id] = asset.type == LoadObject.TYPE_DISPLAY ? e.currentTarget.content : e.currentTarget.data;
-				complete ? complete(e) :  loadObj.complete(e);
+				loadObj.complete(e);
 			}
 		}
 		
