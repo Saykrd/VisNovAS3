@@ -7,8 +7,6 @@ package
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
 	
-	import load.DataLoad;
-	import load.LoadObject;
 	
 	
 	public class VisualNovelAS3 extends Sprite
